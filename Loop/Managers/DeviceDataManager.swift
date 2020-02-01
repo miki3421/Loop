@@ -163,12 +163,12 @@ final class DeviceDataManager {
         switch result {
         case .newData(let values):
             log.default("CGMManager:\(type(of: manager)) did update with \(values.count) values")
-            
+                        
             loopManager.addGlucose(values) { result in
                 if manager.shouldSyncToRemoteService {
                     switch result {
                     case .success(let values):
-                        self.nightscoutDataManager.uploadGlucose(values, sensorState: manager.sensorState)
+                        self.nightscoutDataManager.uploadGlucose(values, sensorState: manager.sensorState, fromDevice: manager.device)
                     case .failure:
                         break
                     }
@@ -592,8 +592,11 @@ extension DeviceDataManager: LoopDataManagerDelegate {
         guard let pumpManager = pumpManager else {
             return units
         }
-
-        return pumpManager.roundToSupportedBolusVolume(units: units)
+        
+        let rounded = ([0.0] + pumpManager.supportedBolusVolumes).enumerated().min( by: { abs($0.1 - units) < abs($1.1 - units) } )!.1
+        self.log.default("Rounded \(units) to \(rounded)")
+        
+        return rounded
     }
 
     func loopDataManager(
