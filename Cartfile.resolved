@@ -1,3 +1,4 @@
+github "miki3421/dexcom-share-client-swift" "master"
 github "LoopKit/Amplitude-iOS" "2137d5fd44bf630ed33e1e72d7af6d8f8612f270"
 github "LoopKit/CGMBLEKit" "aaa67861eeddfd6dd8b4b59e8d71cfa065fb07f8"
 github "LoopKit/G4ShareSpy" "v1.1"
