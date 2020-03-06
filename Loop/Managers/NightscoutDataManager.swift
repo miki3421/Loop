@@ -417,20 +417,15 @@ final class NightscoutDataManager {
         } else {
             deviceStr = "loop://unknowndevice"
         }
-
         let direction: String? = {
             switch sensorState?.trendType {
             case .up?:
-                return "FortyFiveUp"
-            case .upUp?:
                 return "SingleUp"
-            case .upUpUp?:
+            case .upUp?, .upUpUp?:
                 return "DoubleUp"
             case .down?:
-                return "FortyFiveDown"
-            case .downDown?:
                 return "SingleDown"
-            case .downDownDown?:
+            case .downDown?, .downDownDown?:
                 return "DoubleDown"
             case .flat?:
                 return "Flat"
