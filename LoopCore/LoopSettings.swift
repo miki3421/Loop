@@ -22,7 +22,7 @@ public extension DosingStrategy {
             return NSLocalizedString("Automatic Bolus", comment: "Title string for automatic bolus dosing strategy")
         }
     }
-    
+
     var subtitle: String {
         switch self {
         case .tempBasalOnly:
@@ -57,8 +57,12 @@ public struct LoopSettings: Equatable {
     public var suspendThreshold: GlucoseThreshold? = nil
 
     public let retrospectiveCorrectionEnabled = true
-    
+
     public var dosingStrategy: DosingStrategy = .tempBasalOnly
+
+    public var dosingStrategyAutomationEnabled = false
+
+    public var dosingStrategyThreshold: GlucoseThreshold? = nil
 
     /// The interval over which to aggregate changes in glucose for retrospective correction
     public let retrospectiveCorrectionGroupingInterval = TimeInterval(minutes: 30)
@@ -71,7 +75,7 @@ public struct LoopSettings: Equatable {
     public let defaultWatchCarbPickerValue = 15 // grams
 
     public let defaultWatchBolusPickerValue = 1.0 // %
-    
+
     public let bolusPartialApplicationFactor = 0.4 // %
 
     // MARK - Display settings
@@ -79,15 +83,15 @@ public struct LoopSettings: Equatable {
     public let minimumChartWidthPerHour: CGFloat = 50
 
     public let statusChartMinimumHistoryDisplay: TimeInterval = .hours(1)
-    
+
     public var glucoseUnit: HKUnit? {
         return glucoseTargetRangeSchedule?.unit
     }
-    
+
     // MARK - Push Notifications
-    
+
     public var deviceToken: Data?
-    
+
     // MARK - Guardrails
 
     public func allowedSensitivityValues(for unit: HKUnit) -> [Double] {
@@ -118,13 +122,17 @@ public struct LoopSettings: Equatable {
         glucoseTargetRangeSchedule: GlucoseRangeSchedule? = nil,
         maximumBasalRatePerHour: Double? = nil,
         maximumBolus: Double? = nil,
-        suspendThreshold: GlucoseThreshold? = nil
+        suspendThreshold: GlucoseThreshold? = nil,
+        dosingStrategyAutomationEnabled: Bool = false,
+        dosingStrategyThreshold: GlucoseThreshold? = nil
     ) {
         self.dosingEnabled = dosingEnabled
         self.glucoseTargetRangeSchedule = glucoseTargetRangeSchedule
         self.maximumBasalRatePerHour = maximumBasalRatePerHour
         self.maximumBolus = maximumBolus
         self.suspendThreshold = suspendThreshold
+        self.dosingStrategyAutomationEnabled = dosingStrategyAutomationEnabled
+        self.dosingStrategyThreshold = dosingStrategyThreshold
     }
 }
 
@@ -258,10 +266,18 @@ extension LoopSettings: RawRepresentable {
         if let rawThreshold = rawValue["minimumBGGuard"] as? GlucoseThreshold.RawValue {
             self.suspendThreshold = GlucoseThreshold(rawValue: rawThreshold)
         }
-        
+
         if let rawDosingStrategy = rawValue["dosingStrategy"] as? DosingStrategy.RawValue,
             let dosingStrategy = DosingStrategy(rawValue: rawDosingStrategy) {
             self.dosingStrategy = dosingStrategy
+        }
+
+        if let dosingStrategyAutomationEnabled = rawValue["dosingStrategyAutomationEnabled"] as? Bool {
+            self.dosingStrategyAutomationEnabled = dosingStrategyAutomationEnabled
+        }
+
+        if let rawDosingStrategyThreshold = rawValue["dosingStrategyThreshold"] as? GlucoseThreshold.RawValue {
+            self.dosingStrategyThreshold = GlucoseThreshold(rawValue: rawDosingStrategyThreshold)
         }
 
     }
@@ -281,6 +297,8 @@ extension LoopSettings: RawRepresentable {
         raw["maximumBolus"] = maximumBolus
         raw["minimumBGGuard"] = suspendThreshold?.rawValue
         raw["dosingStrategy"] = dosingStrategy.rawValue
+        raw["dosingStrategyAutomationEnabled"] = dosingStrategyAutomationEnabled
+        raw["dosingStrategyThreshold"] = dosingStrategyThreshold?.rawValue
 
         return raw
     }

@@ -238,7 +238,7 @@ final class LoopDataManager {
     private let lockedBasalDeliveryState: Locked<PumpManagerStatus.BasalDeliveryState?>
 
     fileprivate var lastRequestedBolus: DoseEntry?
-    
+
     private var lastLoopStarted: Date?
 
     /// The last date at which a loop completed, from prediction to dose (if dosing is enabled)
@@ -288,7 +288,7 @@ final class LoopDataManager {
             backgroundTask = .invalid
         }
     }
-    
+
     private func loopDidComplete(date: Date, duration: TimeInterval) {
         lastLoopCompleted = date
         NotificationManager.clearLoopNotRunningNotifications()
@@ -450,7 +450,7 @@ extension LoopDataManager {
             HKObjectType.categoryType(forIdentifier: HKCategoryTypeIdentifier.sleepAnalysis)!
         ].compactMap { $0 })
     }
-    
+
     /// All the HealthKit types to be shared by stores
     private var shareTypes: Set<HKSampleType> {
         return Set([
@@ -463,7 +463,7 @@ extension LoopDataManager {
     var sleepDataAuthorizationRequired: Bool {
         return carbStore.healthStore.authorizationStatus(for: HKObjectType.categoryType(forIdentifier: HKCategoryTypeIdentifier.sleepAnalysis)!) == .notDetermined
     }
-    
+
     var sleepDataSharingDenied: Bool {
         return carbStore.healthStore.authorizationStatus(for: HKObjectType.categoryType(forIdentifier: HKCategoryTypeIdentifier.sleepAnalysis)!) == .sharingDenied
     }
@@ -1153,7 +1153,7 @@ extension LoopDataManager {
         }
 
         let pumpStatusDate = doseStore.lastAddedPumpData
-        
+
         let startDate = Date()
 
         guard startDate.timeIntervalSince(glucose.startDate) <= settings.recencyInterval else {
@@ -1186,6 +1186,14 @@ extension LoopDataManager {
         let predictedGlucoseIncludingPendingInsulin = try predictGlucose(using: settings.enabledEffects, includingPendingInsulin: true)
         self.predictedGlucoseIncludingPendingInsulin = predictedGlucoseIncludingPendingInsulin
 
+        if( settings.dosingStrategyAutomationEnabled && settings.dosingStrategyThreshold?.rawValue != nil){
+            if( glucose.quantity > HKQuantity(unit : HKUnit.milligramsPerDeciliter, doubleValue: settings.dosingStrategyThreshold!.value)){
+                settings.dosingStrategy = .automaticBolus
+            } else {
+                settings.dosingStrategy = .tempBasalOnly
+            }
+        }
+
         guard
             let maxBasal = settings.maximumBasalRatePerHour,
             let glucoseTargetRange = settings.glucoseTargetRangeScheduleApplyingOverrideIfActive,
@@ -1196,7 +1204,7 @@ extension LoopDataManager {
         else {
             throw LoopError.configurationError(.generalSettings)
         }
-        
+
         guard lastRequestedBolus == nil
         else {
             // Don't recommend changes if a bolus was just requested.
@@ -1209,7 +1217,7 @@ extension LoopDataManager {
         let rateRounder = { (_ rate: Double) in
             return self.delegate?.loopDataManager(self, roundBasalRate: rate) ?? rate
         }
-        
+
 
         let lastTempBasal: DoseEntry?
 
@@ -1218,15 +1226,15 @@ extension LoopDataManager {
         } else {
             lastTempBasal = nil
         }
-        
+
         let dosingRecommendation: AutomaticDoseRecommendation?
-        
+
         switch settings.dosingStrategy {
         case .automaticBolus:
             let volumeRounder = { (_ units: Double) in
                 return self.delegate?.loopDataManager(self, roundBolusVolume: units) ?? units
             }
-            
+
             dosingRecommendation = predictedGlucose.recommendedAutomaticDose(
                 to: glucoseTargetRange,
                 at: predictedGlucose[0].startDate,
@@ -1256,7 +1264,7 @@ extension LoopDataManager {
             )
             dosingRecommendation = AutomaticDoseRecommendation(basalAdjustment: temp, bolusUnits: 0)
         }
-        
+
         if let dosingRecommendation = dosingRecommendation {
             self.logger.default("Current basal state: \(String(describing: basalDeliveryState))")
             self.logger.default("Recommending dose: \(dosingRecommendation) at \(startDate)")
@@ -1296,7 +1304,7 @@ extension LoopDataManager {
             completion(LoopError.recommendationExpired(date: recommendedDose.date))
             return
         }
-        
+
         if case .suspended = basalDeliveryState {
             completion(LoopError.pumpSuspended)
             return
@@ -1422,7 +1430,7 @@ extension LoopDataManager {
             }
             return loopDataManager.recommendedDose
         }
-        
+
         var recommendedBolus: (recommendation: ManualBolusRecommendation, date: Date)? {
             dispatchPrecondition(condition: .onQueue(loopDataManager.dataAccessQueue))
             guard loopDataManager.lastRequestedBolus == nil else {
