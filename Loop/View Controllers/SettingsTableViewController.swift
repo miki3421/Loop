@@ -74,7 +74,7 @@ final class SettingsTableViewController: UITableViewController {
         case carbRatio
         case insulinSensitivity
     }
-    
+
     fileprivate enum StrategyRow: Int, CaseCountable {
         case dosingStrategy = 0
         case dosingStrategyAutomationEnabled
@@ -115,7 +115,7 @@ final class SettingsTableViewController: UITableViewController {
             break
         }
     }
-    
+
     func configuredSetupViewController(for pumpManager: PumpManagerUI.Type) -> (UIViewController & PumpManagerSetupViewController & CompletionNotifying) {
         var setupViewController = pumpManager.setupViewController()
         setupViewController.setupDelegate = self
@@ -125,7 +125,7 @@ final class SettingsTableViewController: UITableViewController {
         setupViewController.maxBasalRateUnitsPerHour = dataManager.loopManager.settings.maximumBasalRatePerHour
         return setupViewController
     }
-    
+
     // MARK: - UITableViewDataSource
 
     private var sections: [Section] {
@@ -262,7 +262,7 @@ final class SettingsTableViewController: UITableViewController {
                 }
             case .suspendThreshold:
                 configCell.textLabel?.text = NSLocalizedString("Suspend Threshold", comment: "The title text in settings")
-                
+
                 if let suspendThreshold = dataManager.loopManager.settings.suspendThreshold {
                     let value = valueNumberFormatter.string(from: suspendThreshold.value, unit: suspendThreshold.unit) ?? SettingsTableViewCell.TapToSetString
                     configCell.detailTextLabel?.text = value
@@ -306,7 +306,7 @@ final class SettingsTableViewController: UITableViewController {
                     configCell.detailTextLabel?.text = dataManager.loopManager.settings.dosingStrategy.title
                 case .dosingStrategyAutomationEnabled:
                     let switchCell = tableView.dequeueReusableCell(withIdentifier: SwitchTableViewCell.className, for: indexPath) as! SwitchTableViewCell
-                    
+
                     switchCell.selectionStyle = .none
                     switchCell.switch?.isOn = dataManager.loopManager.settings.dosingStrategyAutomationEnabled
                     switchCell.textLabel?.text = NSLocalizedString("Auto Strategy Switching", comment: "The title text for the Dosing Strategy enabled switch cell")
@@ -316,7 +316,7 @@ final class SettingsTableViewController: UITableViewController {
                     return switchCell
                 case .dosingStrategyThreshold:
                     configCell.textLabel?.text = NSLocalizedString("Dose Switching Threshold", comment: "The title text in settings")
-                    
+
                     if let dosingStrategyThreshold = dataManager.loopManager.settings.dosingStrategyThreshold {
                         let value = valueNumberFormatter.string(from: dosingStrategyThreshold.value, unit: dosingStrategyThreshold.unit) ?? SettingsTableViewCell.TapToSetString
                         configCell.detailTextLabel?.text = value
@@ -666,7 +666,7 @@ final class SettingsTableViewController: UITableViewController {
     @objc private func dosingEnabledChanged(_ sender: UISwitch) {
         dataManager.loopManager.settings.dosingEnabled = sender.isOn
     }
-    
+
     @objc private func dosingStrategyAutomationEnabledChanged(_ sender: UISwitch) {
         dataManager.loopManager.settings.dosingStrategyAutomationEnabled = sender.isOn
     }
